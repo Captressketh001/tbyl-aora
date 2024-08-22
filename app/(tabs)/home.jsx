@@ -1,5 +1,5 @@
-import { View, Text, FlatList, Image, RefreshControl, Alert } from 'react-native'
-import React, {useState, useEffect} from 'react'
+import { View, Text, FlatList, Image, RefreshControl } from 'react-native'
+import React, {useState} from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import images from '../../constants/images'
 import SearchInput from '../../components/SearchInput'
@@ -8,12 +8,12 @@ import EmptyState from '../../components/EmptyState'
 import VideoCard from '../../components/VideoCard'
 import { getAllPosts, getAllLatestPosts } from '../../lib/appwrite'
 import useAppWrite from '../../lib/useAppWrite'
-
+import { useGlobalContext } from '../../context/GlobalProvider'
 const Home = () => {
   const [refreshing, setRefreshing] = useState(false)
   const {data: posts, refetch} = useAppWrite(getAllPosts)
   const {data: latestPosts} = useAppWrite(getAllLatestPosts)
-  
+  const { user } = useGlobalContext()
   const onRefresh = async() => {
     setRefreshing(true);
     // Recall videos -> If any new video
@@ -33,10 +33,10 @@ const Home = () => {
             <View className="justify-between items-start flex-row mb-6">
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">
-                  Welcome Back
+                  Welcome back,
                 </Text>
                 <Text className="font-psemibold text-2xl text-white">
-                  Tbyl
+                  {user?.username}
                 </Text>
               </View>
               <View className="mt-1.5">
