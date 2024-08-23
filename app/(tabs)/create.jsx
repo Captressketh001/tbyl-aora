@@ -5,8 +5,11 @@ import FormField from '../../components/FormField'
 import CustomButton from '../../components/CustomButton'
 import { Video, ResizeMode } from 'expo-av';
 import icons from '../../constants/icons';
-import * as DocumentPicker from 'expo-document-picker'
-
+// import * as DocumentPicker from 'expo-document-picker'
+import * as ImagePicker from 'expo-image-picker'
+import { router } from 'expo-router';
+import { createVideo } from '../../lib/appwrite';
+import { useGlobalContext } from '../../context/GlobalProvider';
 const Create = () => {
   const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({
@@ -15,11 +18,19 @@ const Create = () => {
     thumbnail: null,
     prompt: ''
   })
-  const openPicker = async(selectType) => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: selectType === 'image'
-      ? ['image/png', 'image/jpeg', 'image/jpg']
-      : ['video/mp4', 'video/gif']
+  const { user } = useGlobalContext()
+  const openPicker = async (selectType) => {
+    // const result = await DocumentPicker.getDocumentAsync({
+    //   type: selectType === 'image'
+    //   ? ['image/png', 'image/jpeg', 'image/jpg']
+    //   : ['video/mp4', 'video/gif']
+    // })
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: selectType === 'image' ? ImagePicker.
+      MediaTypeOptions.Images : ImagePicker.MediaTypeOptions.Videos,
+      // allowsEditing:true,
+      aspect: [4,3],
+      quality: 1
     })
     if (!result.canceled){
       if (selectType === 'image') {
@@ -34,8 +45,26 @@ const Create = () => {
       }, 100)
     }
   }
-  const submit = () => {
-      
+  const submit = async () => {
+      if (!form.title || !form.thumbnail || !form.prompt || !form.video){
+        return Alert.alert('Error', 'Please fill in all fields')
+      }
+      setUploading(true)
+      try {
+        await createVideo({...form, userId: user.$id})
+        Alert.alert('Success', 'Post uploaded successfully')
+        router.push('/home')
+      } catch (error) {
+        Alert.alert('Error', error.message)
+      } finally {
+        setUploading(false)
+        setForm({
+          title: '',
+          video: null,
+          thumbnail: null,
+          prompt: ''
+        })
+      }
   }
   return (
     <SafeAreaView className="bg-primary h-full">
